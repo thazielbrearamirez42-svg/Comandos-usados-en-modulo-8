@@ -1,0 +1,67 @@
+Comandos usados practica 3
+
+## Instalacion de docker compose
+
+docker compose version (se instalo de la practica anterior)
+
+## Crear el archivo para el proyecto
+
+mkdir ~/mi_wordpress
+cd ~/mi_wordpress
+
+## Crear el .yml
+
+nano docker-compose.yml
+
+ Crear directorio:
+
+mkdir -p ~/mi_wordpress/wp-content
+sudo chcon -Rt svirt_sandbox_file_t ~/mi_wordpress/wp-content
+sudo setsebool -P container_manage_cgroup on
+
+version: '3.1'
+
+services:
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: password_secreto
+      MYSQL_DATABASE: wordpress_db
+      MYSQL_USER: wordpress_user
+      MYSQL_PASSWORD: wordpress_password
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+
+  wordpress:
+    depends_on:
+      - db
+    image: wordpress:latest
+    ports:
+      - "8000:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress_user
+      WORDPRESS_DB_PASSWORD: wordpress_password
+      WORDPRESS_DB_NAME: wordpress_db
+    volumes:
+
+      - ./wp-content:/var/www/html/wp-content:Z
+    restart: always
+
+volumes:
+  db_data:
+  
+## Configurar el firewall
+
+sudo firewall-cmd --permanent --add-port=8000/tcp
+sudo firewall-cmd --reload
+
+## desplegar 
+
+sudo docker compose up -d
+sudo docker compose ps -a
+
+## ver en http://192.168.1.72:8000
+
+============================================
