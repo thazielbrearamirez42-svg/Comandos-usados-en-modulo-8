@@ -1,0 +1,29 @@
+Laboratorio 8.2
+Descargar e instalar el contenedor del servidor Portainer:
+
+sudo docker pull portainer/portainer-ce:latest
+
+## Crear volumen de datos
+sudo docker volume create portainer_data
+
+
+sudo docker run -d \
+  -p 9443:9443 \
+  --name portainer \
+  --restart=always \
+  --privileged \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data \
+  portainer/portainer-ce:latest
+
+
+Puedes verificar si el contenedor del servidor Portainer ha iniciado ejecutando el comandosudo docker ps:
+
+
+sudo firewall-cmd --permanent --add-port=9443/tcp
+sudo firewall-cmd --reload
+
+ Accedemos:
+https://localhost:9443
+
+https://127.0.0.1:9443
