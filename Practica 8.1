@@ -58,7 +58,8 @@ sudo firewall-cmd --reload
 
 
 Ahora abre http://TU_IP:8080 y verás la página de Apache.
-
+#Ip:8888
+===============================
 c) Ver contenedores:
 sudo docker ps
 sudo docker ps -a
@@ -75,4 +76,61 @@ g) Eliminar imagen:
 sudo docker rmi httpd:latest
 
 
+Si quieres ver los logs en tiempo real para verificar que Nginx está recibiendo las peticiones, usa:
 
+Bash
+sudo docker logs -f SO3-nginx
+
+
+
+============
+Diagnóstico General 
+Ver errores del demonio Docker: Si Docker no inicia, revisa los logs del sistema.
+
+
+sudo journalctl -u docker
+Inspeccionar un contenedor: Para ver la configuración completa, IPs y montajes de un contenedor que falla.
+
+
+sudo docker inspect SO3-nginx
+Ver logs del contenedor: Vital para saber por qué Nginx no arranca o por qué da error la página.
+
+
+sudo docker logs SO3-nginx
+2. Errores de Red y Puertos
+Verificar puertos ocupados: Si Docker dice que el puerto 8888 ya está en uso.
+
+
+sudo ss -tulpn | grep 8888
+Verificar reglas del Firewall: Para confirmar:
+sudo firewall-cmd --list-ports
+
+3. Errores de SELinux y Permisos (Muy común en RHEL)
+Error "Permission Denied" en volúmenes: Si al entrar al navegador ves un error 403, es probable que SELinux esté bloqueando el acceso a /home/website.
+
+Solución rápida (etiquetado):
+
+sudo chcon -Rt svirt_sandbox_file_t /home/website
+Ver bloqueos de SELinux en tiempo real:
+
+sudo tail -f /var/log/audit/audit.log | grep denied
+4. Limpieza de Emergencia ("Borrar y empezar de nuevo")
+A veces el sistema se llena de contenedores o imágenes corruptas.
+
+Eliminar todo lo que no se esté usando: (Contenedores detenidos, redes y caché).
+
+sudo docker system prune -a
+Forzar la eliminación de todos los contenedores:
+
+
+sudo docker rm -f $(sudo docker ps -aq)
+Si el volumen está "bloqueado": A veces no puedes borrar una carpeta porque Docker la tiene montada.
+
+
+sudo umount /var/lib/docker/volumes/...
+5. Error: "Docker command not found" o permisos de usuario
+Si no quieres usar sudo en cada comando, debes agregar tu usuario al grupo docker:
+
+
+sudo usermod -aG docker $USER
+# Luego cierra sesión y vuelve a entrar
